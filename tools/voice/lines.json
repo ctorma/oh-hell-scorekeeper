@@ -1,0 +1,17 @@
+[
+{"id":"s01","voice":"af_heart","speed":1.06,"text":"Hey there! Grab a seat. Let's learn Oh Hell."},
+{"id":"s02","voice":"af_heart","speed":1.06,"text":"Here's the whole idea. Look at your cards and guess how many tricks you're going to win. Then go win exactly that many. One too many hurts just as much as one too few."},
+{"id":"s03","voice":"af_heart","speed":1.06,"text":"You'll play seventeen hands. The first one is a single card each, and it grows by one until you hit seven. Then it shrinks back down to one. Two of the big hands have no trump suit at all, and the last hand is a goofy one we'll get to in a minute."},
+{"id":"s04","voice":"af_heart","speed":1.06,"text":"Scoring's simple. Say you call two and take two. That's four points for nailing it, plus two for your bid, so six. Call zero and take nothing? That still pays four. But call three and take two, and you're down four. Close counts for nothing here."},
+{"id":"s05","voice":"af_heart","speed":1.06,"text":"One more rule, and it's the sneaky one. The dealer always bids last, and the bids aren't allowed to add up to the number of cards. So if five cards are out and the table has bid four, the dealer can't say one. That means every single hand, somebody's guaranteed to miss. And when it's you? Well, now you know why it's called Oh Hell."},
+{"id":"s06","voice":"af_heart","speed":1.06,"text":"Okay, that's the game. Now let the phone do the math. Set it in the middle of the table, and don't worry about losing your place. It remembers everything."},
+{"id":"s07","voice":"af_heart","speed":1.06,"text":"Start by adding everybody in the order they're sitting. If they've played before, their name's already waiting, so just tap it. Then tell it who's dealing first."},
+{"id":"s08","voice":"af_heart","speed":1.06,"text":"When it's time to bid, the app calls out whose turn it is. Tap your number and pass it along. It keeps count of the bids as you go."},
+{"id":"s09","voice":"af_heart","speed":1.06,"text":"And when it comes around to the dealer, the number they can't pick is already crossed out. So nobody has to play rules lawyer."},
+{"id":"s10","voice":"af_heart","speed":1.06,"text":"Once the hand's played, tap in how many tricks each person took. If the count's off, it'll let you know before anything gets scored."},
+{"id":"s11","voice":"af_heart","speed":1.06,"text":"Then the points pop right up. A check means you made it, an X means you didn't, and whoever's out in front gets the crown."},
+{"id":"s12","voice":"af_heart","speed":1.06,"text":"The app gives you a heads up when a hand is No Trump. And that goofy last hand? You get one card, and you stick it on your forehead without looking. You can see everybody's card but your own. Good luck bidding on that!"},
+{"id":"s13","voice":"af_heart","speed":1.06,"text":"Tapped the wrong thing? It happens. Pull up the scorecard, tap that hand, and fix it. Everything adds back up on its own."},
+{"id":"s14","voice":"af_heart","speed":1.06,"text":"After the last hand, you'll see who won and who actually made their bids all night. Want a rematch? One tap and you're dealing again."},
+{"id":"s15","voice":"af_heart","speed":1.06,"text":"That's it. Go shuffle!"}
+]

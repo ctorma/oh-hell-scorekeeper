@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+__pycache__/
+
+# video and voice build outputs
+tools/video/shots/
+tools/video/prev-*.jpg
+tools/video/*.mp4
+tools/video/poster.jpg
+tools/video/soundtrack.wav
+tools/voice/vo/
+tools/voice/kokoro-q8.onnx
+tools/voice/voices.bin

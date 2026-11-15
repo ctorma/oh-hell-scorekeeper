@@ -1,0 +1,137 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+:root{--felt:#1d5641;--felt-deep:#123a2b;--line:#2c6c53;--card:#fbf5e6;--card2:#efe6cf;--ink:#1b1a16;--soft:#5b5546;--red:#c0352a;--brass:#efc054;--brass-ink:#3a2a05;--nt:#2f2f6e;--blind:#24131f;--blind2:#6e2b5f;--made:#17703f;--made-bg:#dcefdf;--miss:#b3261e;--miss-bg:#f8dcd8;--on:#f4efe1;--on-soft:#b9d3c4;
+--fd:"Bricolage Grotesque",system-ui,sans-serif;--fb:"Atkinson Hyperlegible",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;width:720px;height:1280px;overflow:hidden;background:var(--felt-deep)}
+#stage{position:relative;width:720px;height:1280px;overflow:hidden;color:var(--on);font-family:var(--fb);
+  background:radial-gradient(ellipse at 50% 20%, #24654c 0%, var(--felt) 45%, var(--felt-deep) 100%)}
+.cap{position:absolute;left:56px;right:56px;top:78px}
+.kick{font-size:21px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.ttl{font-family:var(--fd);font-weight:800;font-size:54px;line-height:1.02;margin-top:12px;letter-spacing:-.01em;text-wrap:balance}
+.body{font-size:27px;line-height:1.35;margin-top:16px;color:var(--on-soft);max-width:600px}
+.phone{position:absolute;left:180px;top:448px;width:360px;height:779px;border-radius:34px;overflow:hidden;background:#000;
+  box-shadow:0 0 0 10px #0c0c0c,0 0 0 12px #3a3a3a,0 30px 60px rgba(0,0,0,.5)}
+.phone img{position:absolute;left:0;top:0;width:390px;transform-origin:0 0}
+.tap{position:absolute;width:0;height:0}
+.tap i{position:absolute;border-radius:50%;transform:translate(-50%,-50%)}
+.hl{position:absolute;border:4px solid var(--brass);border-radius:14px;box-shadow:0 0 0 6px rgba(239,192,84,.3),0 0 30px rgba(239,192,84,.6)}
+.fade{position:absolute;inset:0;background:var(--felt-deep);pointer-events:none}
+.pc{position:absolute;width:128px;height:180px;border-radius:12px;background:var(--card);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.35);
+  font-family:var(--fd);font-weight:800;font-size:34px;padding:10px 12px;transform-origin:50% 120%}
+.pc .big{position:absolute;left:0;right:0;top:56px;text-align:center;font-size:64px}
+.pc.r{color:var(--red)}
+.bar{position:absolute;bottom:0;width:30px;border-radius:8px 8px 3px 3px;background:var(--card)}
+.blab{position:absolute;font-family:var(--fd);font-weight:800;font-size:20px;text-align:center;width:30px}
+.ex{position:absolute;left:56px;right:56px;border-radius:20px;background:var(--card);color:var(--ink);padding:22px 26px;display:flex;align-items:center;gap:18px;box-shadow:0 8px 0 rgba(0,0,0,.2)}
+.ex .l{flex:1;font-size:27px;line-height:1.3}
+.ex .l b{font-family:var(--fd)}
+.ex .p{font-family:var(--fd);font-weight:800;font-size:46px;border-radius:14px;padding:4px 16px}
+.ex .p.m{background:var(--made-bg);color:var(--made)}
+.ex .p.x{background:var(--miss-bg);color:var(--miss)}
+.eq{position:absolute;left:0;right:0;text-align:center;font-family:var(--fd);font-weight:800}
+.chipq{display:inline-block;min-width:74px;padding:6px 14px;border-radius:16px;background:var(--card);color:var(--ink);margin:0 4px}
+.chipq.no{background:#3b5c4d;color:#97b3a5;text-decoration:line-through}
+.chipq.dl{background:var(--brass);color:var(--brass-ink)}
+</style></head>
+<body><div id="stage"></div>
+<script>
+const W=720,H=1280,K=360/390;
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const eo=x=>1-Math.pow(1-cl(x),3);
+const win=(t,a,b)=>eo((t-a)/(b-a));
+const lerp=(a,b,x)=>a+(b-a)*x;
+const BOX=window.BOXES||{};
+function caption(k,t,b){return `<div class="cap"><div class="kick" data-in="0">${k}</div><div class="ttl" data-in=".12">${t}</div>${b?`<div class="body" data-in=".3">${b}</div>`:''}</div>`}
+function animIn(root,lt){root.querySelectorAll('[data-in]').forEach(el=>{const d=+el.dataset.in;const x=win(lt,d,d+.6);el.style.opacity=x;el.style.transform=`translateY(${(1-x)*24}px)`;});}
+function phoneScene(o){
+  return {d:o.d, html: caption(o.k,o.t,o.b) + `<div class="phone" id="ph"><img id="im" src="shots/${o.img}.png"><div id="ov"></div></div>`,
+  update(lt,root){
+    animIn(root,lt);
+    const ph=root.querySelector('#ph'); const r=win(lt,.15,.85); ph.style.transform=`translateY(${(1-r)*120}px)`; ph.style.opacity=r;
+    let v=o.view?o.view(lt):{x:0,y:0,s:1};
+    const im=root.querySelector('#im'); im.style.transform=`scale(${K*v.s}) translate(${-v.x}px,${-v.y}px)`;
+    const map=(x,y)=>[(x-v.x)*K*v.s,(y-v.y)*K*v.s];
+    let ov='';
+    (o.hl||[]).forEach(h=>{const a=win(lt,h.at,h.at+.4)*(h.until?1-win(lt,h.until,h.until+.3):1);if(a<=0)return;const [x,y]=map(h.x-4,h.y-4);ov+=`<div class="hl" style="left:${x}px;top:${y}px;width:${(h.w+8)*K*v.s}px;height:${(h.h+8)*K*v.s}px;opacity:${a}"></div>`;});
+    (o.taps||[]).forEach(tp=>{const dt=lt-tp.at;if(dt<-.3||dt>1.1)return;const [x,y]=map(tp.x,tp.y);const pre=cl((dt+.3)/.3);const rr=dt>0?40+dt*90:40;const ro=dt>0?cl(1-dt/1):pre;const dot=dt<.35?pre:cl(1-(dt-.35)/.4);
+      ov+=`<div class="tap" style="left:${x}px;top:${y}px"><i style="width:${rr*2}px;height:${rr*2}px;border:5px solid rgba(255,255,255,${.9*ro})"></i><i style="width:46px;height:46px;background:rgba(255,255,255,${.55*dot});box-shadow:0 0 0 3px rgba(0,0,0,${.25*dot})"></i></div>`;});
+    root.querySelector('#ov').innerHTML=ov;
+  }};
+}
+const B=(s,k)=>BOX[s]&&BOX[s][k]||{x:0,y:0,width:0,height:0};
+const hlb=(s,k,at,until)=>{const b=B(s,k);return {x:b.x,y:b.y,w:b.width,h:b.height,at,until}};
+const tapb=(s,k,at)=>{const b=B(s,k);return {x:b.x+b.width/2,y:b.y+b.height/2,at}};
+const S=[];
+// 1 title
+S.push({d:3.6, html:`<div style="position:absolute;left:0;right:0;top:360px;text-align:center">
+  <div id="su" style="font-size:72px;letter-spacing:22px;margin-left:22px"><span>♠</span><span style="color:#ff8a7d">♥</span><span style="color:#ff8a7d">♦</span><span>♣</span></div>
+  <div id="t1" style="font-family:var(--fd);font-weight:800;font-size:150px;letter-spacing:-.03em;line-height:1;margin-top:24px">Oh Hell</div>
+  <div id="t2" style="font-size:34px;color:var(--on-soft);margin-top:24px">How to play, and how to keep score</div></div>`,
+  update(lt,r){[...r.querySelectorAll('#su span')].forEach((s,i)=>{const x=win(lt,.1+i*.12,.6+i*.12);s.style.display='inline-block';s.style.opacity=x;s.style.transform=`translateY(${(1-x)*-60}px) rotate(${(1-x)*40}deg)`});
+    const a=win(lt,.5,1.1);const t1=r.querySelector('#t1');t1.style.opacity=a;t1.style.transform=`scale(${.85+.15*a})`;const b=win(lt,1,1.6);const t2=r.querySelector('#t2');t2.style.opacity=b;t2.style.transform=`translateY(${(1-b)*20}px)`;}});
+// 2 the game
+S.push({d:6.2, html:caption('The game','Bid exactly the tricks you’ll take','Everyone gets the same number of cards. Before play, each player says how many tricks they’ll win. Not one more, not one less.')
+  +`<div id="fan" style="position:absolute;left:0;top:720px;width:720px;height:420px">${[['A','♠',''],['K','♥','r'],['9','♦','r'],['J','♣',''],['4','♥','r']].map(([v,s,c],i)=>`<div class="pc ${c}" style="left:296px;top:90px">${v}<br><span style="font-size:28px">${s}</span><div class="big">${s}</div></div>`).join('')}</div>
+  <div id="bidc" style="position:absolute;left:0;right:0;top:1150px;text-align:center"><span style="display:inline-block;background:var(--brass);color:var(--brass-ink);font-family:var(--fd);font-weight:800;font-size:36px;padding:10px 26px;border-radius:999px">“I’ll take 2”</span></div>`,
+  update(lt,r){animIn(r,lt);[...r.querySelectorAll('.pc')].forEach((c,i)=>{const x=win(lt,.6+i*.12,1.3+i*.12);const ang=(i-2)*14*x;c.style.opacity=cl(x*2);c.style.transform=`translateY(${(1-x)*200}px) rotate(${ang}deg)`;});
+    const b=win(lt,2.6,3.1);const e=r.querySelector('#bidc');e.style.opacity=b;e.style.transform=`scale(${.7+.3*b})`;}});
+// 3 schedule
+const SCH=[1,2,3,4,5,6,7,'7n',7,6,5,4,3,2,1,'7n','1b'];
+S.push({d:6.4, html:caption('17 hands','Up to seven, back down, then a twist','Hands 8 and 16 are No Trump. Hand 17 is the Blind hand.')
+  +`<div style="position:absolute;left:45px;top:760px;width:630px;height:340px">${SCH.map((c,i)=>{const n=parseInt(c),ty=String(c).endsWith('n')?'nt':String(c).endsWith('b')?'bl':'';const x=i*37;return `<div class="bar" data-i="${i}" style="left:${x}px;height:${n*42}px;background:${ty==='nt'?'#6d6de0':ty==='bl'?'#d06bb8':'var(--card)'}"></div><div class="blab" data-l="${i}" style="left:${x}px;bottom:${n*42+8}px;color:${ty==='nt'?'#b9b9ff':ty==='bl'?'#f3a9e1':'var(--on)'}">${n}</div>`}).join('')}
+  <div style="position:absolute;left:0;right:0;top:356px;display:flex;gap:28px;font-size:22px;font-weight:700"><span><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:var(--card);vertical-align:-2px"></span> Trump</span><span style="color:#b9b9ff"><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:#6d6de0;vertical-align:-2px"></span> No Trump</span><span style="color:#f3a9e1"><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:#d06bb8;vertical-align:-2px"></span> Blind</span></div></div>`,
+  update(lt,r){animIn(r,lt);r.querySelectorAll('.bar').forEach(b=>{const i=+b.dataset.i;const x=win(lt,.7+i*.12,1.1+i*.12);b.style.transform=`scaleY(${x})`;b.style.transformOrigin='50% 100%';});r.querySelectorAll('.blab').forEach(b=>{const i=+b.dataset.l;b.style.opacity=win(lt,1+i*.12,1.3+i*.12);});}});
+// 4 scoring
+S.push({d:6.6, html:caption('Scoring','Exact or nothing','Make your bid on the nose: 4 points plus your bid. Miss by any amount: lose 4.')
+  +`<div class="ex" data-e="0" style="top:740px"><div class="l">Bid <b>2</b>, took <b>2</b><br><span style="color:var(--soft)">4 + 2</span></div><div class="p m">✓ +6</div></div>
+    <div class="ex" data-e="1" style="top:900px"><div class="l">Bid <b>0</b>, took <b>0</b><br><span style="color:var(--soft)">A made zero still pays</span></div><div class="p m">✓ +4</div></div>
+    <div class="ex" data-e="2" style="top:1060px"><div class="l">Bid <b>3</b>, took <b>2</b><br><span style="color:var(--soft)">Close doesn’t count</span></div><div class="p x">✗ −4</div></div>`,
+  update(lt,r){animIn(r,lt);r.querySelectorAll('.ex').forEach(e=>{const i=+e.dataset.e;const x=win(lt,1+i*.9,1.5+i*.9);e.style.opacity=x;e.style.transform=`translateX(${(1-x)*-80}px)`;});}});
+// 5 hook rule
+S.push({d:6.4, html:caption('The hook','The bids can never add up','The dealer bids last and can’t choose the number that makes the total equal the cards dealt. Somebody always gets hooked.')
+  +`<div class="eq" id="e1" style="top:790px;font-size:40px;color:var(--on-soft)">5 cards dealt</div>
+    <div class="eq" id="e2" style="top:870px;font-size:44px"><span class="chipq">1</span>+<span class="chipq">0</span>+<span class="chipq">2</span>+<span class="chipq">1</span>+<span class="chipq dl" id="q">?</span></div>
+    <div class="eq" id="e3" style="top:1000px;font-size:34px;color:#ffd27a">Dealer can’t bid <span class="chipq no" style="font-size:40px">1</span></div>
+    <div class="eq" id="e4" style="top:1100px;font-size:28px;color:var(--on-soft);font-family:var(--fb);font-weight:700">1 + 0 + 2 + 1 + 1 would equal 5</div>`,
+  update(lt,r){animIn(r,lt);['e1','e2','e3','e4'].forEach((id,i)=>{const x=win(lt,.9+i*.8,1.4+i*.8);const e=r.querySelector('#'+id);e.style.opacity=x;e.style.transform=`translateY(${(1-x)*20}px)`;});
+    const q=r.querySelector('#q');q.style.transform=`scale(${1+.12*Math.sin(lt*7)*win(lt,1.7,2)})`;}});
+// App scenes
+S.push(phoneScene({d:4.6,img:'home',k:'The app',t:'One phone for the table',b:'Start a new game or resume one. Every tap saves.'}));
+S.push(phoneScene({d:6.2,img:'setup',k:'Set up',t:'Players in seat order',b:'Type a name or tap someone from past games. Then pick who deals first.',
+  taps:[tapb('setup','chip',1.4),tapb('setup','dealer',3),tapb('setup','start',4.7)]}));
+S.push(phoneScene({d:6.2,img:'bid',k:'Bidding',t:'Pass the phone to bid',b:'Bids start left of the dealer. The pad names who’s up and keeps the running total.',
+  hl:[{x:16,y:598,w:358,h:76,at:1.6,until:3.8}], taps:[tapb('bid','two',4.4)]}));
+S.push(phoneScene({d:5.8,img:'hook',k:'The hook, handled',t:'Illegal bids are blocked',b:'When the dealer bids, the forbidden number is greyed out and labeled.',
+    hl:[hlb('hook','forb',2.4),hlb('hook','hook',3.4)]}));
+S.push(phoneScene({d:5.8,img:'tricks',k:'After the hand',t:'Tap the tricks taken',b:'Scoring unlocks once the tricks add up to the cards dealt.',
+  taps:[{x:112,y:564,at:1.6}], hl:[hlb('tricks','status',3)]}));
+S.push(phoneScene({d:5.6,img:'result',k:'Score',t:'Points land instantly',b:'✓ for made, ✗ for missed. The leader wears the crown.',
+  hl:[{x:16,y:300+168,w:358,h:300,at:1.4,until:3.2},hlb('result','board',3.4)]}));
+// special hands: two phones
+S.push({d:6.8, html:caption('Heads up','Special hands stand out','No Trump hands get a striped card. The Blind hand opens with a fanfare: card to your forehead, no peeking.')
+  +`<div class="phone" id="p1" style="left:62px;top:560px;width:280px;height:606px;border-radius:28px"><img src="shots/nt.png" style="width:390px;transform:scale(${280/390})"></div>
+    <div class="phone" id="p2" style="left:378px;top:560px;width:280px;height:606px;border-radius:28px"><img src="shots/blind.png" style="width:390px;transform:scale(${280/390})"></div>`,
+  update(lt,r){animIn(r,lt);const a=win(lt,.4,1.1),b=win(lt,1.6,2.3);const p1=r.querySelector('#p1'),p2=r.querySelector('#p2');p1.style.opacity=a;p1.style.transform=`translateY(${(1-a)*100}px) rotate(${-3*a}deg)`;p2.style.opacity=b;p2.style.transform=`translateY(${(1-b)*100}px) rotate(${3*b}deg)`;}});
+S.push(phoneScene({d:5.8,img:'scorecard',k:'Mistakes happen',t:'Fix any hand',b:'Open the scorecard and tap a finished hand to correct it. Totals recalculate.',
+  taps:[{x:60,y:B('scorecard','row').y+31,at:2.2}], hl:[{x:24,y:B('scorecard','row').y,w:342,h:63,at:2.6}]}));
+S.push(phoneScene({d:6.4,img:'end',k:'Hand 17 done',t:'Crown the winner',b:'Final standings, stats, and Play again with the same players.',
+  view:lt=>{const x=win(lt,1.6,5.6);return {x:0,y:lerp(0,404,x*x*(3-2*x)),s:1}}}));
+// outro
+S.push({d:3.6, html:`<div style="position:absolute;left:0;right:0;top:470px;text-align:center"><div id="o1" style="font-family:var(--fd);font-weight:800;font-size:96px;line-height:1">Shuffle up.</div><div id="o2" style="font-size:40px;color:var(--brass);margin-top:28px;font-weight:700;letter-spacing:.08em">♠ ♥ ♦ ♣</div></div>`,
+  update(lt,r){const a=win(lt,.2,.8),b=win(lt,.7,1.3);r.querySelector('#o1').style.opacity=a;r.querySelector('#o1').style.transform=`translateY(${(1-a)*30}px)`;r.querySelector('#o2').style.opacity=b;}});
+S.forEach((x,i)=>{x.d0=x.d;if(window.DURS&&window.DURS[i])x.d=window.DURS[i];});
+window.TOTAL=S.reduce((s,x)=>s+x.d,0);
+let curI=-1;const stage=document.getElementById('stage');
+window.frame=function(t){
+  let i=0,acc=0;while(i<S.length-1&&t>=acc+S[i].d){acc+=S[i].d;i++;}
+  const lt=t-acc;
+  if(i!==curI){stage.innerHTML=S[i].html+'<div class="fade" id="fd"></div>';curI=i;}
+  S[i].update(lt*S[i].d0/S[i].d,stage);
+  const d=S[i].d;const f=Math.max(cl(1-lt/.3), i===S.length-1?cl((lt-(d-.6))/.6):cl((lt-(d-.25))/.25));
+  stage.querySelector('#fd').style.opacity=f;
+  return Promise.all([...stage.querySelectorAll('img')].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r})));
+};
+</script></body></html>
