@@ -26,7 +26,7 @@ Then open http://localhost:8123. The service worker only registers over HTTPS, s
 
 ## Deploying
 
-The site is deployed on Vercel from this repository. Every push to `main` goes live automatically. No framework and no build command are needed.
+Live at **https://ohhellscore.app**. The site is deployed on Vercel from this repository. Every push to `main` goes live automatically. No framework and no build command are needed.
 
 ## Where games are stored
 
