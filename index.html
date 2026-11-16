@@ -637,6 +637,7 @@ function viewEnd(){
     <button class="btn btn-ghost btn-block" data-a="share-open" data-id="${esc(g.id)}">⇪ Share the results</button>
     <div class="label">Final standings</div>${standingsPanel(g)}
     <div class="label">Stats</div>${statsPanel(g)}
+    ${feedbackPanel(g)}
     <div class="row"><button class="btn btn-ghost" style="flex:1" data-a="scorecard-end">Scorecard</button><button class="btn btn-ghost" style="flex:1" data-a="home">Home</button></div>
   </div>`;
 }
@@ -684,6 +685,7 @@ function viewSettings(){
     : `<div class="panel" style="font-size:16px">${s.schedule.map(x => `${x.cards}${x.type==='nt'?' NT':x.type==='blind'?' Blind':''}`).join(' · ')}</div>`}
     <button class="link" data-a="reset-rules" style="align-self:flex-start">Restore default scoring</button>
     ${backupPanel()}
+    ${feedbackPanel(null)}
   </div>`;
 }
 
@@ -837,6 +839,10 @@ const A = {
   'share-go'(){ doShare(); },
   'share-copy'(){ doCopy(); },
   'bk-copy'(){ bkCopy(); },
+  'fb-rate'(el){ const s = fbGet(el.dataset.k); s.rating = s.rating === el.dataset.v ? null : el.dataset.v; s.msg = ''; render(); },
+  'fb-from'(el){ const s = fbGet(el.dataset.k); s.from = el.dataset.v; render(); },
+  'fb-send'(el){ fbSend(el.dataset.k); },
+  'fb-again'(el){ const s = fbGet(el.dataset.k); Object.assign(s, {rating:null, text:'', status:'idle', msg:'', again:true}); render(); },
   'bk-save'(){ bkSave(); },
   'bk-open'(){ ui.bk.open = true; ui.bk.msg = ''; render(); const t = document.getElementById('bk-text'); if (t) t.focus(); },
   'bk-restore'(){ const t = document.getElementById('bk-text'); doRestore(t ? t.value : ui.bk.paste); render(); },
@@ -895,7 +901,7 @@ document.addEventListener('submit', ev => {
   const inp = document.getElementById('name-input');
   addName(inp ? inp.value : ''); ui.focus = 'name-input'; render();
 });
-document.addEventListener('input', ev => { if (ev.target.id === 'name-input') ui.nameText = ev.target.value; if (ev.target.id === 'bk-text') ui.bk.paste = ev.target.value; });
+document.addEventListener('input', ev => { if (ev.target.id === 'name-input') ui.nameText = ev.target.value; if (ev.target.id === 'bk-text') ui.bk.paste = ev.target.value; fbInput(ev.target); });
 document.addEventListener('change', ev => {
   if (ev.target.id !== 'bk-file' || !ev.target.files || !ev.target.files[0]) return;
   const f = ev.target.files[0];
@@ -1142,6 +1148,101 @@ function doRestore(text){
   ui.bk.msg = parts.length ? `Done: ${parts.join(', ')}.` : 'Nothing new in that backup. Everything is already here.';
 }
 
+/* ---------- feedback (own website only) ---------- */
+// Notes go to /api/feedback, which files them as cards on the Trello board.
+const APP_VERSION = '2026.11.16';
+const FB_QUEUE = 'ohhell-feedback-queue', FB_SENT = 'ohhell-feedback-sent';
+const RATINGS = [['loved', 'Loved it'], ['fine', 'It was fine'], ['problem', 'Something went wrong']];
+const feedbackOn = () => topLevel && /^https?:$/.test(location.protocol);
+const fbState = {};
+const fbGet = k => fbState[k] || (fbState[k] = {rating: null, text: '', from: '', status: 'idle', msg: '', again: false});
+function lsGet(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+function fbInput(t){
+  if (t.id === 'fb-from-general') fbGet('general').from = t.value;
+  if (!t.id || !t.id.startsWith('fb-text-')) return;
+  const k = t.id.slice(8), s = fbGet(k);
+  s.text = t.value;
+  // Typing doesn't re-render, so enable the Send button here.
+  document.querySelectorAll('[data-a="fb-send"]').forEach(b => { if (b.dataset.k === k) b.disabled = !(s.rating || s.text.trim()) || s.status === 'sending'; });
+}
+function deviceSummary(){
+  const ua = navigator.userAgent;
+  const dev = /iPhone/.test(ua) ? 'iPhone' : (/iPad/.test(ua) || (navigator.maxTouchPoints > 1 && /Mac/.test(ua))) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Other';
+  const br = /Edg\//.test(ua) ? 'Edge' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /FxiOS|Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Other browser';
+  const inst = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+  return `${dev} · ${br}${inst ? ' · installed app' : ''}`;
+}
+function gameSummary(g){
+  if (!g) return null;
+  return {date: fmtDate(g.finishedAt), players: g.players.length, hands: g.schedule.length,
+    standings: ranking(g).map(x => ({name: g.players[x.p].name, total: x.total}))};
+}
+function feedbackPanel(g){
+  if (!feedbackOn()) return '';
+  const k = g ? g.id : 'general', s = fbGet(k);
+  const sentBefore = g && lsGet(FB_SENT, {})[g.id];
+  const title = g ? 'How did the app do tonight?' : 'Send feedback';
+  if (s.status === 'sent' || s.status === 'queued' || (sentBefore && !s.again && s.status === 'idle')) {
+    const line = s.status === 'queued' ? 'Saved. It will send by itself next time this phone is online.' : 'Thanks! Your feedback was sent.';
+    return `<div class="label">${title}</div><div class="panel stack" style="gap:6px"><b>✓ ${line}</b>
+      <button class="link" style="align-self:flex-start" data-a="fb-again" data-k="${esc(k)}">Send another note</button></div>`;
+  }
+  const can = (s.rating || s.text.trim()) && s.status !== 'sending';
+  const fromPicker = g
+    ? `<div class="label">From</div><div class="chips" role="group" aria-label="Who is this from">${[...g.players.map(p => p.name), ''].map(nm =>
+        `<button class="chip ${s.from === nm ? 'sel' : ''}" data-a="fb-from" data-k="${esc(k)}" data-v="${esc(nm)}" aria-pressed="${s.from === nm}">${nm ? esc(nm) : 'Anonymous'}</button>`).join('')}</div>`
+    : `<input id="fb-from-general" class="share-text" style="min-height:48px;margin:0" maxlength="40" placeholder="Your name (optional)" value="${esc(s.from)}" aria-label="Your name">`;
+  return `<div class="label">${title}</div>
+  <div class="panel stack" style="gap:10px">
+    <p style="margin:0;font-size:16px;color:var(--ink-soft)">Optional. Tell us what worked, what broke, or what you'd add.</p>
+    <div class="chips" role="group" aria-label="Rating">${RATINGS.map(([v, l]) =>
+      `<button class="chip ${s.rating === v ? 'sel' : ''}" data-a="fb-rate" data-k="${esc(k)}" data-v="${v}" aria-pressed="${s.rating === v}">${l}</button>`).join('')}</div>
+    <textarea id="fb-text-${esc(k)}" class="share-text" style="margin:0" maxlength="2000" placeholder="What should we fix or add? (optional)" aria-label="Your note">${esc(s.text)}</textarea>
+    ${fromPicker}
+    <button class="btn btn-primary btn-block" data-a="fb-send" data-k="${esc(k)}" ${can ? '' : 'disabled'}>${s.status === 'sending' ? 'Sending…' : 'Send feedback'}</button>
+    <p style="margin:0;font-size:14px;color:var(--ink-soft)">Sends your note and rating${g ? ", plus this game's final scores," : ''} to the app's to-do list.</p>
+    ${s.msg ? `<p role="status" style="margin:0;font-weight:700;color:var(--miss)">${esc(s.msg)}</p>` : ''}
+  </div>`;
+}
+async function postFeedback(p){
+  if (navigator.onLine === false) return 'later';
+  try {
+    const r = await fetch('/api/feedback', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p)});
+    if (r.ok) return 'ok';
+    if (r.status === 429 || r.status >= 500) return 'later';
+    let m = ''; try { m = (await r.json()).error || ''; } catch(e) {}
+    return {error: m || 'That note couldn’t be sent.'};
+  } catch(e) { return 'later'; }
+}
+async function fbSend(k){
+  const s = fbGet(k), g = k === 'general' ? null : store.history[k];
+  if (!(s.rating || s.text.trim()) || s.status === 'sending') return;
+  const payload = {rating: s.rating, message: s.text.trim().slice(0, 2000), from: (s.from || '').trim().slice(0, 40),
+    game: gameSummary(g), device: deviceSummary(), version: APP_VERSION, sentAt: new Date().toISOString(), website: ''};
+  s.status = 'sending'; s.msg = ''; render();
+  const res = await postFeedback(payload);
+  if (res === 'ok' || res === 'later') {
+    if (res === 'later') { const q = lsGet(FB_QUEUE, []); q.push(payload); lsSet(FB_QUEUE, q.slice(-20)); }
+    if (g) { const m = lsGet(FB_SENT, {}); m[g.id] = Date.now(); lsSet(FB_SENT, m); }
+    Object.assign(s, {status: res === 'ok' ? 'sent' : 'queued', rating: null, text: '', again: false});
+  } else {
+    Object.assign(s, {status: 'idle', msg: res.error});
+  }
+  render();
+}
+let fbFlushing = false;
+async function fbFlush(){
+  if (!feedbackOn() || fbFlushing) return;
+  const q = lsGet(FB_QUEUE, []); if (!q.length) return;
+  fbFlushing = true;
+  const keep = [];
+  for (const p of q) { const r = await postFeedback(p); if (r === 'later') keep.push(p); }
+  lsSet(FB_QUEUE, keep);
+  fbFlushing = false;
+}
+window.addEventListener('online', fbFlush);
+
 /* ---------- install hint (own website only) ---------- */
 let installEvt = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (ui.view === 'home') render(); });
@@ -1183,6 +1284,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 render();
 initDb();
 initDownloads();
+setTimeout(fbFlush, 3000);
 if (topLevel && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 if (topLevel && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 })();

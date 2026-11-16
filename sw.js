@@ -1,7 +1,7 @@
 // Offline support. The page itself is fetched fresh when there's a connection
 // and served from the cache when there isn't. Static files come from the cache.
 // The video streams from the network and isn't cached.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'oh-hell-' + VERSION;
 const SHELL = [
   './',

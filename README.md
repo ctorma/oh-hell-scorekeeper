@@ -13,6 +13,7 @@ It's a static site with no build step and no server. Everything is in `index.htm
 | `manifest.webmanifest`, `icons/` | Lets phones install it to the home screen |
 | `fonts/` | Bricolage Grotesque and Atkinson Hyperlegible, self-hosted so the app works offline (SIL Open Font License) |
 | `media/` | The how-to-play video and its poster |
+| `api/feedback.js` | Files player feedback as Trello cards |
 | `vercel.json` | Cache headers |
 | `tools/` | Scripts that made the icons and the video (not part of the site) |
 
@@ -31,6 +32,14 @@ Live at **https://ohhellscore.app**. The site is deployed on Vercel from this re
 ## Where games are stored
 
 Games live in the browser's local storage on each device. Nothing is sent to a server, and phones don't sync with each other. To move games between devices, use **Settings → Your games**: copy a backup (or save it as a file) on one device and restore it on the other. Restoring merges games, so it never deletes anything.
+
+## Feedback and the Trello board
+
+Players can send feedback at the end of every game (and anytime from Settings). `api/feedback.js` turns each note into a card at the top of the **Feedback inbox** list on the [Oh Hell Scorecard board](https://trello.com/b/gWeqCjf0/oh-hell-scorecard), labeled orange (family feedback), plus red when the rating is "Something went wrong". Each card includes the note, who it's from, the game's final scores, the device and the app version.
+
+The function needs two environment variables in the Vercel project: `TRELLO_KEY` and `TRELLO_TOKEN`. If they're missing, or Trello or the network is down, the app keeps the note on the phone and resends it automatically later.
+
+The same board tracks development: Backlog → Up next → In progress → Shipped.
 
 ## Rules the app enforces
 
